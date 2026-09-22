@@ -1,17 +1,28 @@
 package com.example.ritmo.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +39,7 @@ private val languages = listOf("English", "isiZulu", "isiXhosa", "Sesotho", "Set
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
+    val context = LocalContext.current
     val auth = remember { FirebaseAuth.getInstance() }
     val db = remember { FirebaseFirestore.getInstance() }
     val myUid = auth.currentUser?.uid
@@ -44,6 +56,21 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
     var roomUpdatesEnabled by remember { mutableStateOf(true) }
     var streakRemindersEnabled by remember { mutableStateOf(true) }
     var isSaving by remember { mutableStateOf(false) }
+    var profilePictureBase64 by remember { mutableStateOf<String?>(null) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            // Profile pictures can be a bit smaller than post photos.
+            val encoded = uriToCompressedBase64(context, uri, maxDimensionPx = 300, quality = 60)
+            if (encoded != null) {
+                profilePictureBase64 = encoded
+            } else {
+                coroutineScope.launch { snackbarHostState.showSnackbar("Couldn't load that photo.") }
+            }
+        }
+    }
 
     LaunchedEffect(myUid) {
         if (myUid == null) return@LaunchedEffect
@@ -52,18 +79,22 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
             language = doc.getString("language") ?: languages[0]
             roomUpdatesEnabled = doc.getBoolean("roomUpdatesEnabled") ?: true
             streakRemindersEnabled = doc.getBoolean("streakRemindersEnabled") ?: true
+            profilePictureBase64 = doc.getString("profilePictureBase64")
         }
     }
 
     fun saveSettings() {
         val uid = myUid ?: return
         isSaving = true
-        val data = mapOf(
+        val data = mutableMapOf<String, Any?>(
             "displayName" to displayName,
             "language" to language,
             "roomUpdatesEnabled" to roomUpdatesEnabled,
             "streakRemindersEnabled" to streakRemindersEnabled
         )
+        if (profilePictureBase64 != null) {
+            data["profilePictureBase64"] = profilePictureBase64
+        }
         db.collection("users").document(uid)
             .set(data, com.google.firebase.firestore.SetOptions.merge())
             .addOnCompleteListener { result ->
@@ -95,6 +126,59 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Settings", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = RitmoBlack)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Profile picture
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                val avatarBitmap = remember(profilePictureBase64) { base64ToBitmap(profilePictureBase64) }
+                Box(
+                    modifier = Modifier
+                        .size(96.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .clickable {
+                            photoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (avatarBitmap != null) {
+                        Image(
+                            bitmap = avatarBitmap.asImageBitmap(),
+                            contentDescription = "Profile picture",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Icon(
+                            Icons.Filled.AccountCircle,
+                            contentDescription = "Profile picture",
+                            tint = RitmoGray,
+                            modifier = Modifier.size(96.dp)
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(RitmoSage),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Filled.PhotoCamera,
+                            contentDescription = "Change photo",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))

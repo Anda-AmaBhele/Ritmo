@@ -1,17 +1,26 @@
 package com.example.ritmo.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +45,7 @@ fun PostToBoardScreen(
     // instead of closing the app.
     BackHandler { onBack() }
 
+    val context = LocalContext.current
     val auth = remember { FirebaseAuth.getInstance() }
     val db = remember { FirebaseFirestore.getInstance() }
     val roomId = remember(routeName, timeWindow) { roomIdFor(routeName, timeWindow) }
@@ -45,6 +55,18 @@ fun PostToBoardScreen(
     var content by remember { mutableStateOf("") }
     var isPosting by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var imageBase64 by remember { mutableStateOf<String?>(null) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            imageBase64 = uriToCompressedBase64(context, uri)
+            if (imageBase64 == null) {
+                errorMessage = "Couldn't load that photo. Try a different one."
+            }
+        }
+    }
 
     fun post() {
         val uid = auth.currentUser?.uid
@@ -58,7 +80,7 @@ fun PostToBoardScreen(
         }
         isPosting = true
         val authorName = auth.currentUser?.email?.substringBefore("@") ?: "Ritmo user"
-        val data = mapOf(
+        val data = mutableMapOf<String, Any?>(
             "roomId" to roomId,
             "authorId" to uid,
             "authorName" to authorName,
@@ -67,13 +89,16 @@ fun PostToBoardScreen(
             "isBoosted" to (isBoosted && selectedCategory == "Event"),
             "createdAt" to FieldValue.serverTimestamp()
         )
+        if (imageBase64 != null) {
+            data["imageBase64"] = imageBase64
+        }
         db.collection("posts").add(data)
             .addOnCompleteListener { result ->
                 isPosting = false
                 if (result.isSuccessful) {
                     onPosted()
                 } else {
-                    errorMessage = "Couldn't post right now. Check your connection."
+                    errorMessage = "Couldn't post right now: ${result.exception?.message ?: "check your connection"}"
                 }
             }
     }
@@ -151,6 +176,48 @@ fun PostToBoardScreen(
         }
 
         Spacer(modifier = Modifier.height(20.dp))
+
+        // Photo attach row — useful for selling items, showing a lift's car, etc.
+        val previewBitmap = remember(imageBase64) { base64ToBitmap(imageBase64) }
+        if (previewBitmap != null) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Image(
+                    bitmap = previewBitmap.asImageBitmap(),
+                    contentDescription = "Selected photo",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .background(RitmoGray.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                )
+                Icon(
+                    Icons.Filled.Close,
+                    contentDescription = "Remove photo",
+                    tint = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .background(RitmoBlack.copy(alpha = 0.5f), RoundedCornerShape(50))
+                        .clickable { imageBase64 = null }
+                        .padding(4.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        } else {
+            OutlinedButton(
+                onClick = {
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Filled.PhotoCamera, contentDescription = null, tint = RitmoSage)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Add a photo", color = RitmoBlack)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         OutlinedTextField(
             value = content,

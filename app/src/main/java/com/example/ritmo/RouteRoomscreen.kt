@@ -1,6 +1,7 @@
 package com.example.ritmo.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,6 +31,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.launch
 
 data class BoardPost(
     val postId: String = "",
@@ -36,9 +40,11 @@ data class BoardPost(
     val category: String = "",
     val content: String = "",
     val isBoosted: Boolean = false,
-    val createdAtMillis: Long = 0L
+    val createdAtMillis: Long = 0L,
+    val imageBase64: String? = null
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RouteRoomScreen(
     routeName: String,
@@ -59,6 +65,9 @@ fun RouteRoomScreen(
     var posts by remember { mutableStateOf<List<BoardPost>>(emptyList()) }
     var selectedAuthorId by remember { mutableStateOf<String?>(null) }
     var selectedAuthorName by remember { mutableStateOf<String>("") }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     BackHandler { onNavigateHome() }
 
@@ -86,7 +95,19 @@ fun RouteRoomScreen(
         val postsListener: ListenerRegistration = db.collection("posts")
             .whereEqualTo("roomId", roomId)
             .orderBy("createdAt", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, _ ->
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    // This is what used to fail silently. Most likely cause:
+                    // Firestore needs a composite index for this query and one
+                    // hasn't been created yet — the real error message (visible
+                    // in Logcat/Build Output) includes a direct link to create it.
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            "Couldn't load posts: ${error.message ?: "unknown error"}"
+                        )
+                    }
+                    return@addSnapshotListener
+                }
                 posts = snapshot?.documents?.mapNotNull { doc ->
                     val createdAtMillis = doc.getTimestamp("createdAt")?.toDate()?.time ?: return@mapNotNull null
                     // Posts older than 24 hours quietly drop off the board.
@@ -98,7 +119,8 @@ fun RouteRoomScreen(
                         category = doc.getString("category") ?: "",
                         content = doc.getString("content") ?: "",
                         isBoosted = doc.getBoolean("isBoosted") ?: false,
-                        createdAtMillis = createdAtMillis
+                        createdAtMillis = createdAtMillis,
+                        imageBase64 = doc.getString("imageBase64")
                     )
                 } ?: emptyList()
             }
@@ -122,116 +144,121 @@ fun RouteRoomScreen(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(RitmoCream)
-    ) {
-        // Header
+    Scaffold(
+        containerColor = RitmoCream,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(RitmoSage)
-                .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back to Home",
-                    tint = RitmoCream,
-                    modifier = Modifier.clickable { onNavigateHome() }
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = routeName,
-                color = RitmoCream,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-            Text(
-                text = "$timeWindow  \u00b7  $memberCount in this room",
-                color = RitmoCream.copy(alpha = 0.85f),
-                fontSize = 13.sp
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Box(
+            // Header
+            Column(
                 modifier = Modifier
-                    .size(64.dp)
-                    .clickable { isMicOn = !isMicOn }
-                    .background(
-                        if (isMicOn) RitmoCream else RitmoCream.copy(alpha = 0.3f),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .background(RitmoSage)
+                    .padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    imageVector = if (isMicOn) Icons.Filled.Mic else Icons.Filled.MicOff,
-                    contentDescription = "Toggle mic",
-                    tint = if (isMicOn) RitmoSage else RitmoCream
-                )
-            }
-        }
-
-        // Board
-        Box(modifier = Modifier.weight(1f)) {
-            if (posts.isEmpty()) {
-                Text(
-                    text = "No posts yet \u2014 be the first to share something.",
-                    color = RitmoGray,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(24.dp)
-                )
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(posts) { post ->
-                        PostCard(
-                            post,
-                            isOwnPost = post.authorId == auth.currentUser?.uid,
-                            onAuthorClick = {
-                                selectedAuthorId = post.authorId
-                                selectedAuthorName = post.authorName
-                            },
-                            onDelete = { db.collection("posts").document(post.postId).delete() }
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Back to Home",
+                        tint = RitmoCream,
+                        modifier = Modifier.clickable { onNavigateHome() }
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = routeName,
+                    color = RitmoCream,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+                Text(
+                    text = "$timeWindow  \u00b7  $memberCount in this room",
+                    color = RitmoCream.copy(alpha = 0.85f),
+                    fontSize = 13.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clickable { isMicOn = !isMicOn }
+                        .background(
+                            if (isMicOn) RitmoCream else RitmoCream.copy(alpha = 0.3f),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (isMicOn) Icons.Filled.Mic else Icons.Filled.MicOff,
+                        contentDescription = "Toggle mic",
+                        tint = if (isMicOn) RitmoSage else RitmoCream
+                    )
                 }
             }
 
-            FloatingActionButton(
-                onClick = onNavigateToPost,
-                containerColor = RitmoSage,
-                contentColor = RitmoCream,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(20.dp)
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "New post")
-            }
-        }
+            // Board
+            Box(modifier = Modifier.weight(1f)) {
+                if (posts.isEmpty()) {
+                    Text(
+                        text = "No posts yet \u2014 be the first to share something.",
+                        color = RitmoGray,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(24.dp)
+                    )
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(posts) { post ->
+                            PostCard(
+                                post,
+                                isOwnPost = post.authorId == auth.currentUser?.uid,
+                                onAuthorClick = {
+                                    selectedAuthorId = post.authorId
+                                    selectedAuthorName = post.authorName
+                                },
+                                onDelete = { db.collection("posts").document(post.postId).delete() }
+                            )
+                        }
+                    }
+                }
 
-        // Bottom nav
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            NavIcon(Icons.Filled.Home, "Home", onClick = onNavigateHome)
-            NavIcon(Icons.Filled.Groups, "Board", isSelected = true)
-            NavIcon(Icons.Filled.Chat, "Messages", onClick = onNavigateToMessages)
-            NavIcon(Icons.Filled.Notifications, "Notifications", onClick = onNavigateToNotifications)
-            NavIcon(Icons.Filled.Person, "Profile", onClick = onNavigateToProfile)
+                FloatingActionButton(
+                    onClick = onNavigateToPost,
+                    containerColor = RitmoSage,
+                    contentColor = RitmoCream,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(20.dp)
+                ) {
+                    Icon(Icons.Filled.Add, contentDescription = "New post")
+                }
+            }
+
+            // Bottom nav
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                NavIcon(Icons.Filled.Home, "Home", onClick = onNavigateHome)
+                NavIcon(Icons.Filled.Groups, "Board", isSelected = true)
+                NavIcon(Icons.Filled.Chat, "Messages", onClick = onNavigateToMessages)
+                NavIcon(Icons.Filled.Notifications, "Notifications", onClick = onNavigateToNotifications)
+                NavIcon(Icons.Filled.Person, "Profile", onClick = onNavigateToProfile)
+            }
         }
     }
 }
@@ -302,6 +329,20 @@ private fun PostCard(post: BoardPost, isOwnPost: Boolean, onAuthorClick: () -> U
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(post.content, color = RitmoBlack, fontSize = 14.sp)
+
+        val bitmap = remember(post.imageBase64) { base64ToBitmap(post.imageBase64) }
+        if (bitmap != null) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "Post photo",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .background(RitmoGray.copy(alpha = 0.1f), RoundedCornerShape(10.dp))
+            )
+        }
     }
 }
 

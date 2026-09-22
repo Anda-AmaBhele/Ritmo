@@ -119,21 +119,24 @@ fun HomeScreen(
         }
     }
 
-    // Load the user's saved preferences and streak when the screen first appears
-    LaunchedEffect(userId) {
-        if (userId != null) {
-            db.collection("users").document(userId).get()
-                .addOnSuccessListener { doc ->
-                    selectedRoute = doc.getString("homeRouteName")
-                    streakCount = doc.getLong("streakCount") ?: 0L
-                    val saved = doc.getString("preferredTimeWindow")
-                    if (saved != null && saved.contains(":")) {
-                        val parts = saved.split(":")
-                        hour = parts.getOrNull(0)?.toIntOrNull()
-                        minute = parts.getOrNull(1)?.toIntOrNull()
-                    }
+    // Load the user's saved preferences and streak live, so changes made
+    // elsewhere (e.g. streak updating when you join a room) show up here
+    // immediately instead of needing a fresh page load.
+    DisposableEffect(userId) {
+        if (userId == null) return@DisposableEffect onDispose {}
+        val listener = db.collection("users").document(userId)
+            .addSnapshotListener { doc, error ->
+                if (error != null || doc == null) return@addSnapshotListener
+                selectedRoute = doc.getString("homeRouteName")
+                streakCount = doc.getLong("streakCount") ?: 0L
+                val saved = doc.getString("preferredTimeWindow")
+                if (saved != null && saved.contains(":")) {
+                    val parts = saved.split(":")
+                    hour = parts.getOrNull(0)?.toIntOrNull()
+                    minute = parts.getOrNull(1)?.toIntOrNull()
                 }
-        }
+            }
+        onDispose { listener.remove() }
     }
 
     fun confirm() {
@@ -181,7 +184,7 @@ fun HomeScreen(
         ) {
 
             Text(
-                text = "Good morning",
+                text = greetingForNow(),
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 color = RitmoBlack

@@ -65,3 +65,64 @@ fun hoursUntilExpiry(createdAtMillis: Long): Double {
     val remainingMillis = (24 * 60 * 60 * 1000) - ageMillis
     return remainingMillis / (1000.0 * 60.0 * 60.0)
 }
+
+// A "Good morning"/"afternoon"/"evening" greeting based on the real current time.
+fun greetingForNow(): String {
+    val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+    return when {
+        hour < 12 -> "Good morning"
+        hour < 17 -> "Good afternoon"
+        else -> "Good evening"
+    }
+}
+
+// --- Image helpers (no Firebase Storage / Blaze plan needed) ---
+//
+// Pictures are stored directly as small compressed Base64 strings inside the
+// Firestore document itself, instead of uploading to Firebase Storage. This
+// works fine for one profile picture or a single post photo, but keep images
+// small (maxDimensionPx) since Firestore documents are capped at 1MB total.
+
+fun uriToCompressedBase64(
+    context: android.content.Context,
+    uri: android.net.Uri,
+    maxDimensionPx: Int = 400,
+    quality: Int = 55
+): String? {
+    return try {
+        val input = context.contentResolver.openInputStream(uri) ?: return null
+        val original = android.graphics.BitmapFactory.decodeStream(input)
+        input.close()
+        if (original == null) return null
+
+        val scale = minOf(
+            maxDimensionPx.toFloat() / original.width,
+            maxDimensionPx.toFloat() / original.height,
+            1f
+        )
+        val scaled = if (scale < 1f) {
+            android.graphics.Bitmap.createScaledBitmap(
+                original,
+                (original.width * scale).toInt().coerceAtLeast(1),
+                (original.height * scale).toInt().coerceAtLeast(1),
+                true
+            )
+        } else original
+
+        val outputStream = java.io.ByteArrayOutputStream()
+        scaled.compress(android.graphics.Bitmap.CompressFormat.JPEG, quality, outputStream)
+        android.util.Base64.encodeToString(outputStream.toByteArray(), android.util.Base64.NO_WRAP)
+    } catch (e: Exception) {
+        null
+    }
+}
+
+fun base64ToBitmap(base64: String?): android.graphics.Bitmap? {
+    if (base64.isNullOrBlank()) return null
+    return try {
+        val bytes = android.util.Base64.decode(base64, android.util.Base64.NO_WRAP)
+        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    } catch (e: Exception) {
+        null
+    }
+}
