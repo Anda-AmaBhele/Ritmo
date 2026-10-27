@@ -25,10 +25,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ritmo.LocaleHelper
+import com.example.ritmo.R
 import com.example.ritmo.ui.theme.RitmoBlack
 import com.example.ritmo.ui.theme.RitmoCream
 import com.example.ritmo.ui.theme.RitmoGray
@@ -72,7 +74,9 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
             if (encoded != null) {
                 profilePictureBase64 = encoded
             } else {
-                coroutineScope.launch { snackbarHostState.showSnackbar("Couldn't load that photo.") }
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.couldnt_load_photo))
+                }
             }
         }
     }
@@ -114,7 +118,9 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                 isSaving = false
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(
-                        if (result.isSuccessful) "Settings saved!" else "Couldn't save right now."
+                        context.getString(
+                            if (result.isSuccessful) R.string.settings_saved else R.string.couldnt_save
+                        )
                     )
                 }
             }
@@ -137,12 +143,17 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.back),
                     tint = RitmoBlack,
                     modifier = Modifier.clickable { onBack() }
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Settings", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = RitmoBlack)
+                Text(
+                    stringResource(R.string.settings),
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = RitmoBlack
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -168,14 +179,14 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                     if (avatarBitmap != null) {
                         Image(
                             bitmap = avatarBitmap.asImageBitmap(),
-                            contentDescription = "Profile picture",
+                            contentDescription = stringResource(R.string.profile_picture),
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {
                         Icon(
                             Icons.Filled.AccountCircle,
-                            contentDescription = "Profile picture",
+                            contentDescription = stringResource(R.string.profile_picture),
                             tint = RitmoGray,
                             modifier = Modifier.size(96.dp)
                         )
@@ -190,7 +201,7 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                     ) {
                         Icon(
                             Icons.Filled.PhotoCamera,
-                            contentDescription = "Change photo",
+                            contentDescription = stringResource(R.string.change_photo),
                             tint = Color.White,
                             modifier = Modifier.size(16.dp)
                         )
@@ -201,8 +212,13 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
             Spacer(modifier = Modifier.height(20.dp))
 
             // Account card
-            SectionCard(title = "Account") {
-                Text("Name", fontWeight = FontWeight.Bold, color = RitmoBlack, fontSize = 13.sp)
+            SectionCard(title = stringResource(R.string.account)) {
+                Text(
+                    stringResource(R.string.name),
+                    fontWeight = FontWeight.Bold,
+                    color = RitmoBlack,
+                    fontSize = 13.sp
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 OutlinedTextField(
                     value = displayName,
@@ -214,7 +230,12 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Email", fontWeight = FontWeight.Bold, color = RitmoBlack, fontSize = 13.sp)
+                Text(
+                    stringResource(R.string.email),
+                    fontWeight = FontWeight.Bold,
+                    color = RitmoBlack,
+                    fontSize = 13.sp
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(email, color = RitmoGray, fontSize = 14.sp)
             }
@@ -222,8 +243,13 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
 
             // Preferences card
-            SectionCard(title = "Preferences") {
-                Text("Language", fontWeight = FontWeight.Bold, color = RitmoBlack, fontSize = 13.sp)
+            SectionCard(title = stringResource(R.string.preferences)) {
+                Text(
+                    stringResource(R.string.language),
+                    fontWeight = FontWeight.Bold,
+                    color = RitmoBlack,
+                    fontSize = 13.sp
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 ExposedDropdownMenuBox(
                     expanded = languageMenuExpanded,
@@ -267,11 +293,14 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Route room updates", color = RitmoBlack, fontSize = 14.sp)
+                    Text(stringResource(R.string.route_room_updates), color = RitmoBlack, fontSize = 14.sp)
                     Switch(
                         checked = roomUpdatesEnabled,
                         onCheckedChange = { roomUpdatesEnabled = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = RitmoSage, checkedTrackColor = RitmoSage.copy(alpha = 0.5f))
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = RitmoSage,
+                            checkedTrackColor = RitmoSage.copy(alpha = 0.5f)
+                        )
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -280,11 +309,14 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Streak reminders", color = RitmoBlack, fontSize = 14.sp)
+                    Text(stringResource(R.string.streak_reminders), color = RitmoBlack, fontSize = 14.sp)
                     Switch(
                         checked = streakRemindersEnabled,
                         onCheckedChange = { streakRemindersEnabled = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = RitmoSage, checkedTrackColor = RitmoSage.copy(alpha = 0.5f))
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = RitmoSage,
+                            checkedTrackColor = RitmoSage.copy(alpha = 0.5f)
+                        )
                     )
                 }
             }
@@ -305,7 +337,7 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Save settings")
+                    Text(stringResource(R.string.save_settings))
                 }
             }
 
@@ -320,7 +352,7 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = RitmoBlack),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
-                Text("Log out", color = RitmoCream)
+                Text(stringResource(R.string.log_out), color = RitmoCream)
             }
         }
     }

@@ -7,9 +7,25 @@
     <string name="log_in">Ngena</string>
     <string name="register">Bhalisa</string>
     <string name="new_here">Umtsha apha? Bhalisa</string>
-    <string name="have_account">Unayo i-akhawunti? Ngena</string>
+    <string name="have_account">Sele unayo i-akhawunti? Ngena</string>
     <string name="or">okanye</string>
-    <string name="continue_google">Qhubeka no-Google</string>
+    <string name="continue_google">Qhubeka ne-Google</string>
     <string name="fill_both">Nceda uzalise zombini iindawo.</string>
     <string name="account_created">I-akhawunti yenziwe! Jonga i-imeyile yakho ukuze uyiqinisekise.</string>
+
+    <string name="settings">Useto</string>
+    <string name="account">I-akhawunti</string>
+    <string name="name">Igama</string>
+    <string name="preferences">Oko ukukhethayo</string>
+    <string name="language">Ulwimi</string>
+    <string name="route_room_updates">Uhlaziyo lweqonga lendlela</string>
+    <string name="streak_reminders">Izikhumbuzo zochungechunge</string>
+    <string name="save_settings">Gcina useto</string>
+    <string name="log_out">Phuma</string>
+    <string name="settings_saved">Useto lugciniwe!</string>
+    <string name="couldnt_save">Asikwazanga ukugcina ngoku.</string>
+    <string name="couldnt_load_photo">Asikwazanga ukulayisha leyo foto.</string>
+    <string name="back">Emva</string>
+    <string name="profile_picture">Ifoto yeprofayile</string>
+    <string name="change_photo">Tshintsha ifoto</string>
 </resources>

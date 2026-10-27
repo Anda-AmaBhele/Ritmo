@@ -9,7 +9,23 @@
     <string name="new_here">Umusha lapha? Bhalisa</string>
     <string name="have_account">Usunayo i-akhawunti? Ngena</string>
     <string name="or">noma</string>
-    <string name="continue_google">Qhubeka no-Google</string>
+    <string name="continue_google">Qhubeka ne-Google</string>
     <string name="fill_both">Sicelaugcwalise zombili izinsimu.</string>
     <string name="account_created">I-akhawunti yakhiwe! Hlola i-imeyili yakho ukuyiqinisekisa.</string>
+
+    <string name="settings">Izilungiselelo</string>
+    <string name="account">I-akhawunti</string>
+    <string name="name">Igama</string>
+    <string name="preferences">Okuthandwayo</string>
+    <string name="language">Ulimi</string>
+    <string name="route_room_updates">Izibuyekezo zegumbi lomzila</string>
+    <string name="streak_reminders">Izikhumbuzo zochungechunge</string>
+    <string name="save_settings">Gcina izilungiselelo</string>
+    <string name="log_out">Phuma</string>
+    <string name="settings_saved">Izilungiselelo zigciniwe!</string>
+    <string name="couldnt_save">Asikwazanga ukugcina ngokushesha.</string>
+    <string name="couldnt_load_photo">Asikwazanga ukulayisha leyo foto.</string>
+    <string name="back">Emuva</string>
+    <string name="profile_picture">Isithombe sephrofayili</string>
+    <string name="change_photo">Shintsha isithombe</string>
 </resources>
