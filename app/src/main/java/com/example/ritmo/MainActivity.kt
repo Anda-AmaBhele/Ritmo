@@ -1,5 +1,6 @@
 package com.example.ritmo
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,6 +21,7 @@ import com.example.ritmo.ui.NotificationsScreen
 import com.example.ritmo.ui.PostToBoardScreen
 import com.example.ritmo.ui.ProfileScreen
 import com.example.ritmo.ui.RouteRoomScreen
+import com.google.firebase.auth.FirebaseAuth
 
 // Which screen is currently showing. No NavGraph yet — this is a simple
 // manual "router" until real navigation gets added later.
@@ -37,13 +39,30 @@ private sealed class Screen {
 }
 
 class MainActivity : ComponentActivity() {
+
+    // Apply the saved language (English / isiZulu / isiXhosa) before the UI loads
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Watches for the network coming back and uploads posts saved offline
+        SyncManager.start(this)
+
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    var screen by remember { mutableStateOf<Screen>(Screen.Login) }
+                    // If the user is already signed in (e.g. the app restarted after a
+                    // language change), skip the Login screen.
+                    var screen by remember {
+                        mutableStateOf<Screen>(
+                            if (FirebaseAuth.getInstance().currentUser != null) Screen.Home
+                            else Screen.Login
+                        )
+                    }
                     var lastRoom by remember { mutableStateOf<Screen.Room?>(null) }
                     var notificationsOrigin by remember { mutableStateOf<Screen>(Screen.Home) }
                     var profileOrigin by remember { mutableStateOf<Screen>(Screen.Home) }

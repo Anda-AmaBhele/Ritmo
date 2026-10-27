@@ -18,10 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.ritmo.OfflineDb
 import com.example.ritmo.ui.theme.RitmoBlack
 import com.example.ritmo.ui.theme.RitmoCream
 import com.example.ritmo.ui.theme.RitmoGray
@@ -31,6 +33,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 data class BoardPost(
@@ -56,6 +59,7 @@ fun RouteRoomScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToChat: (otherUserId: String, otherUserName: String) -> Unit = { _, _ -> }
 ) {
+    val context = LocalContext.current
     val auth = remember { FirebaseAuth.getInstance() }
     val db = remember { FirebaseFirestore.getInstance() }
     val roomId = remember(routeName, timeWindow) { roomIdFor(routeName, timeWindow) }
@@ -65,11 +69,20 @@ fun RouteRoomScreen(
     var posts by remember { mutableStateOf<List<BoardPost>>(emptyList()) }
     var selectedAuthorId by remember { mutableStateOf<String?>(null) }
     var selectedAuthorName by remember { mutableStateOf<String>("") }
+    var pendingCount by remember { mutableStateOf(0) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
     BackHandler { onNavigateHome() }
+
+    // Check the local offline queue every 2 seconds so the banner disappears once posts sync
+    LaunchedEffect(roomId) {
+        while (true) {
+            pendingCount = OfflineDb(context).countForRoom(roomId)
+            delay(2000)
+        }
+    }
 
     LaunchedEffect(roomId) {
         val uid = auth.currentUser?.uid ?: return@LaunchedEffect
@@ -97,10 +110,8 @@ fun RouteRoomScreen(
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    // This is what used to fail silently. Most likely cause:
-                    // Firestore needs a composite index for this query and one
-                    // hasn't been created yet — the real error message (visible
-                    // in Logcat/Build Output) includes a direct link to create it.
+                    // Most likely cause: Firestore needs a composite index for this query.
+                    // The real error message includes a direct link to create it.
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
                             "Couldn't load posts: ${error.message ?: "unknown error"}"
@@ -203,6 +214,19 @@ fun RouteRoomScreen(
                         tint = if (isMicOn) RitmoSage else RitmoCream
                     )
                 }
+            }
+
+            // Offline banner: shows while posts are waiting in the local queue
+            if (pendingCount > 0) {
+                Text(
+                    text = "$pendingCount post(s) waiting to sync. They'll upload when you're online.",
+                    color = RitmoBlack,
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(RitmoSage.copy(alpha = 0.2f))
+                        .padding(10.dp)
+                )
             }
 
             // Board

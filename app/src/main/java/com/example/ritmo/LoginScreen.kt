@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -74,7 +75,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
         infoMessage = null
 
         if (email.isBlank() || password.isBlank()) {
-            errorMessage = "Please fill in both fields."
+            errorMessage = context.getString(R.string.fill_both)
             return
         }
 
@@ -91,7 +92,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 if (isRegisterMode) {
                     // Send a free email verification link instead of paid SMS 2FA
                     auth.currentUser?.sendEmailVerification()
-                    infoMessage = "Account created! Check your email to verify it."
+                    infoMessage = context.getString(R.string.account_created)
                 } else {
                     onLoginSuccess()
                 }
@@ -119,7 +120,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Ritmo",
+                text = stringResource(R.string.app_name),
                 fontSize = 44.sp,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold,
@@ -129,7 +130,8 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = if (isRegisterMode) "Create your account" else "Welcome back",
+                text = if (isRegisterMode) stringResource(R.string.create_account)
+                else stringResource(R.string.welcome_back),
                 fontSize = 16.sp,
                 color = RitmoGray
             )
@@ -139,7 +141,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text(stringResource(R.string.email)) },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -154,7 +156,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                label = { Text(stringResource(R.string.password)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 shape = RoundedCornerShape(16.dp),
@@ -201,7 +203,10 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text(if (isRegisterMode) "Register" else "Log in")
+                    Text(
+                        if (isRegisterMode) stringResource(R.string.register)
+                        else stringResource(R.string.log_in)
+                    )
                 }
             }
 
@@ -213,11 +218,8 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 infoMessage = null
             }) {
                 Text(
-                    text = if (isRegisterMode) {
-                        "Already have an account? Log in"
-                    } else {
-                        "New here? Register"
-                    },
+                    text = if (isRegisterMode) stringResource(R.string.have_account)
+                    else stringResource(R.string.new_here),
                     color = RitmoBlack
                 )
             }
@@ -227,7 +229,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 HorizontalDivider(modifier = Modifier.weight(1f), color = RitmoGray)
                 Text(
-                    text = "  or  ",
+                    text = "  ${stringResource(R.string.or)}  ",
                     color = RitmoGray,
                     fontSize = 13.sp
                 )
@@ -246,7 +248,11 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                     .fillMaxWidth()
                     .height(48.dp)
             ) {
-                Text("Continue with Google", color = RitmoBlack, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.continue_google),
+                    color = RitmoBlack,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

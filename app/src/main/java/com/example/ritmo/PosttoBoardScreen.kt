@@ -1,5 +1,7 @@
 package com.example.ritmo.ui
 
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -24,6 +26,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ritmo.OfflineDb
+import com.example.ritmo.SyncManager
 import com.example.ritmo.ui.theme.RitmoBlack
 import com.example.ritmo.ui.theme.RitmoCream
 import com.example.ritmo.ui.theme.RitmoGray
@@ -78,15 +82,34 @@ fun PostToBoardScreen(
             errorMessage = "Write something before posting."
             return
         }
-        isPosting = true
         val authorName = auth.currentUser?.email?.substringBefore("@") ?: "Ritmo user"
+        val boostedPost = isBoosted && selectedCategory == "Event"
+
+        // OFFLINE: save to the local SQLite queue. SyncManager uploads it when the phone reconnects.
+        if (!SyncManager.isOnline(context)) {
+            OfflineDb(context).insert(
+                roomId, uid, authorName, selectedCategory, content.trim(),
+                boostedPost, imageBase64, System.currentTimeMillis()
+            )
+            Log.d("RitmoOffline", "No connection, post saved locally")
+            Toast.makeText(
+                context,
+                "You're offline. Post saved and will upload when you reconnect.",
+                Toast.LENGTH_LONG
+            ).show()
+            onPosted()
+            return
+        }
+
+        // ONLINE: post straight to Firestore
+        isPosting = true
         val data = mutableMapOf<String, Any?>(
             "roomId" to roomId,
             "authorId" to uid,
             "authorName" to authorName,
             "category" to selectedCategory,
             "content" to content.trim(),
-            "isBoosted" to (isBoosted && selectedCategory == "Event"),
+            "isBoosted" to boostedPost,
             "createdAt" to FieldValue.serverTimestamp()
         )
         if (imageBase64 != null) {
@@ -234,7 +257,7 @@ fun PostToBoardScreen(
 
         if (errorMessage != null) {
             Spacer(modifier = Modifier.height(10.dp))
-            Text(errorMessage ?: "", color = androidx.compose.ui.graphics.Color.Red, fontSize = 13.sp)
+            Text(errorMessage ?: "", color = Color.Red, fontSize = 13.sp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))

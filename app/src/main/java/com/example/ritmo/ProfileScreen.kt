@@ -8,8 +8,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
@@ -26,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ritmo.LocaleHelper
 import com.example.ritmo.ui.theme.RitmoBlack
 import com.example.ritmo.ui.theme.RitmoCream
 import com.example.ritmo.ui.theme.RitmoGray
@@ -34,7 +37,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
-private val languages = listOf("English", "isiZulu", "isiXhosa", "Sesotho", "Setswana")
+// English + two South African languages (isiZulu, isiXhosa)
+private val languages = LocaleHelper.languages
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +55,8 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
     val coroutineScope = rememberCoroutineScope()
 
     var displayName by remember { mutableStateOf("") }
-    var language by remember { mutableStateOf(languages[0]) }
+    // Language comes from the saved app setting so it applies instantly on launch
+    var language by remember { mutableStateOf(LocaleHelper.getSaved(context)) }
     var languageMenuExpanded by remember { mutableStateOf(false) }
     var roomUpdatesEnabled by remember { mutableStateOf(true) }
     var streakRemindersEnabled by remember { mutableStateOf(true) }
@@ -76,7 +81,6 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
         if (myUid == null) return@LaunchedEffect
         db.collection("users").document(myUid).get().addOnSuccessListener { doc ->
             displayName = doc.getString("displayName") ?: email.substringBefore("@")
-            language = doc.getString("language") ?: languages[0]
             roomUpdatesEnabled = doc.getBoolean("roomUpdatesEnabled") ?: true
             streakRemindersEnabled = doc.getBoolean("streakRemindersEnabled") ?: true
             profilePictureBase64 = doc.getString("profilePictureBase64")
@@ -84,7 +88,16 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
     }
 
     fun saveSettings() {
-        val uid = myUid ?: return
+        // Save the language locally first, so it works even if Firestore is slow or offline
+        val languageChanged = LocaleHelper.getSaved(context) != language
+        LocaleHelper.save(context, language)
+
+        val uid = myUid
+        if (uid == null) {
+            if (languageChanged) (context as? android.app.Activity)?.recreate()
+            return
+        }
+
         isSaving = true
         val data = mutableMapOf<String, Any?>(
             "displayName" to displayName,
@@ -105,6 +118,9 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                     )
                 }
             }
+
+        // Restart the screen so the new language is applied everywhere
+        if (languageChanged) (context as? android.app.Activity)?.recreate()
     }
 
     Scaffold(
@@ -115,6 +131,7 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
                 .padding(20.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -232,7 +249,12 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                         languages.forEach { lang ->
                             DropdownMenuItem(
                                 text = { Text(lang) },
-                                onClick = { language = lang; languageMenuExpanded = false }
+                                onClick = {
+                                    language = lang
+                                    languageMenuExpanded = false
+                                    // Apply the language immediately
+                                    saveSettings()
+                                }
                             )
                         }
                     }
@@ -287,7 +309,7 @@ fun ProfileScreen(onBack: () -> Unit, onLoggedOut: () -> Unit) {
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {

@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Ritmo</string>
+    <string name="email">I-imeyili</string>
+    <string name="password">Iphasiwedi</string>
+    <string name="welcome_back">Siyakwamukela futhi</string>
+    <string name="create_account">Dala i-akhawunti yakho</string>
+    <string name="log_in">Ngena</string>
+    <string name="register">Bhalisa</string>
+    <string name="new_here">Umusha lapha? Bhalisa</string>
+    <string name="have_account">Usunayo i-akhawunti? Ngena</string>
+    <string name="or">noma</string>
+    <string name="continue_google">Qhubeka no-Google</string>
+    <string name="fill_both">Sicelaugcwalise zombili izinsimu.</string>
+    <string name="account_created">I-akhawunti yakhiwe! Hlola i-imeyili yakho ukuyiqinisekisa.</string>
+</resources>
