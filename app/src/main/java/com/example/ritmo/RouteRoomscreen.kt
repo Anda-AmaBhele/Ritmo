@@ -19,11 +19,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.ritmo.OfflineDb
+import com.example.ritmo.R
 import com.example.ritmo.ui.theme.RitmoBlack
 import com.example.ritmo.ui.theme.RitmoCream
 import com.example.ritmo.ui.theme.RitmoGray
@@ -114,7 +116,10 @@ fun RouteRoomScreen(
                     // The real error message includes a direct link to create it.
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar(
-                            "Couldn't load posts: ${error.message ?: "unknown error"}"
+                            context.getString(
+                                R.string.couldnt_load_posts,
+                                error.message ?: context.getString(R.string.unknown_error)
+                            )
                         )
                     }
                     return@addSnapshotListener
@@ -178,7 +183,7 @@ fun RouteRoomScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
-                        contentDescription = "Back to Home",
+                        contentDescription = stringResource(R.string.back),
                         tint = RitmoCream,
                         modifier = Modifier.clickable { onNavigateHome() }
                     )
@@ -191,7 +196,7 @@ fun RouteRoomScreen(
                     fontSize = 18.sp
                 )
                 Text(
-                    text = "$timeWindow  \u00b7  $memberCount in this room",
+                    text = stringResource(R.string.room_members, timeWindow, memberCount),
                     color = RitmoCream.copy(alpha = 0.85f),
                     fontSize = 13.sp
                 )
@@ -210,7 +215,7 @@ fun RouteRoomScreen(
                 ) {
                     Icon(
                         imageVector = if (isMicOn) Icons.Filled.Mic else Icons.Filled.MicOff,
-                        contentDescription = "Toggle mic",
+                        contentDescription = stringResource(R.string.toggle_mic),
                         tint = if (isMicOn) RitmoSage else RitmoCream
                     )
                 }
@@ -219,7 +224,7 @@ fun RouteRoomScreen(
             // Offline banner: shows while posts are waiting in the local queue
             if (pendingCount > 0) {
                 Text(
-                    text = "$pendingCount post(s) waiting to sync. They'll upload when you're online.",
+                    text = stringResource(R.string.waiting_sync, pendingCount),
                     color = RitmoBlack,
                     fontSize = 13.sp,
                     modifier = Modifier
@@ -233,7 +238,7 @@ fun RouteRoomScreen(
             Box(modifier = Modifier.weight(1f)) {
                 if (posts.isEmpty()) {
                     Text(
-                        text = "No posts yet \u2014 be the first to share something.",
+                        text = stringResource(R.string.no_posts),
                         color = RitmoGray,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(24.dp)
@@ -265,7 +270,7 @@ fun RouteRoomScreen(
                         .align(Alignment.BottomEnd)
                         .padding(20.dp)
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = "New post")
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.new_post))
                 }
             }
 
@@ -277,11 +282,15 @@ fun RouteRoomScreen(
                     .padding(vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                NavIcon(Icons.Filled.Home, "Home", onClick = onNavigateHome)
-                NavIcon(Icons.Filled.Groups, "Board", isSelected = true)
-                NavIcon(Icons.Filled.Chat, "Messages", onClick = onNavigateToMessages)
-                NavIcon(Icons.Filled.Notifications, "Notifications", onClick = onNavigateToNotifications)
-                NavIcon(Icons.Filled.Person, "Profile", onClick = onNavigateToProfile)
+                NavIcon(Icons.Filled.Home, stringResource(R.string.nav_home), onClick = onNavigateHome)
+                NavIcon(Icons.Filled.Groups, stringResource(R.string.nav_room), isSelected = true)
+                NavIcon(Icons.Filled.Chat, stringResource(R.string.nav_messages), onClick = onNavigateToMessages)
+                NavIcon(
+                    Icons.Filled.Notifications,
+                    stringResource(R.string.nav_notifications),
+                    onClick = onNavigateToNotifications
+                )
+                NavIcon(Icons.Filled.Person, stringResource(R.string.nav_profile), onClick = onNavigateToProfile)
             }
         }
     }
@@ -306,7 +315,7 @@ private fun PostCard(post: BoardPost, isOwnPost: Boolean, onAuthorClick: () -> U
             ) {
                 Icon(
                     Icons.Filled.AccountCircle,
-                    contentDescription = "Author",
+                    contentDescription = stringResource(R.string.author),
                     tint = RitmoSage,
                     modifier = Modifier.size(20.dp)
                 )
@@ -321,7 +330,7 @@ private fun PostCard(post: BoardPost, isOwnPost: Boolean, onAuthorClick: () -> U
             if (isOwnPost) {
                 Icon(
                     Icons.Filled.Delete,
-                    contentDescription = "Delete post",
+                    contentDescription = stringResource(R.string.delete_post),
                     tint = RitmoGray,
                     modifier = Modifier
                         .size(18.dp)
@@ -333,19 +342,25 @@ private fun PostCard(post: BoardPost, isOwnPost: Boolean, onAuthorClick: () -> U
         Spacer(modifier = Modifier.height(6.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
+            // The stored category stays in English; only the label is translated
             val tagColor = if (post.category == "Lift") RitmoSage else RitmoGray
             Box(
                 modifier = Modifier
                     .background(tagColor.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
                     .padding(horizontal = 10.dp, vertical = 4.dp)
             ) {
-                Text(post.category, color = tagColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    categoryLabel(post.category),
+                    color = tagColor,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
             if (post.isBoosted) {
                 Spacer(modifier = Modifier.width(6.dp))
                 Icon(
                     Icons.Filled.Bolt,
-                    contentDescription = "Boosted",
+                    contentDescription = stringResource(R.string.boosted),
                     tint = RitmoSage,
                     modifier = Modifier.size(16.dp)
                 )
@@ -359,7 +374,7 @@ private fun PostCard(post: BoardPost, isOwnPost: Boolean, onAuthorClick: () -> U
             Spacer(modifier = Modifier.height(10.dp))
             Image(
                 bitmap = bitmap.asImageBitmap(),
-                contentDescription = "Post photo",
+                contentDescription = stringResource(R.string.post_photo),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -397,18 +412,23 @@ private fun AuthorProfileDialog(
             ) {
                 Icon(
                     Icons.Filled.AccountCircle,
-                    contentDescription = "Profile",
+                    contentDescription = stringResource(R.string.nav_profile),
                     tint = RitmoSage,
                     modifier = Modifier.size(56.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(authorName, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = RitmoBlack)
-                if (route != null) {
+                val routeShown = route
+                if (routeShown != null) {
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Route: $route", color = RitmoGray, fontSize = 13.sp)
+                    Text(
+                        stringResource(R.string.route_label, routeShown),
+                        color = RitmoGray,
+                        fontSize = 13.sp
+                    )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("$streak-day streak", color = RitmoGray, fontSize = 13.sp)
+                Text(stringResource(R.string.day_streak, streak), color = RitmoGray, fontSize = 13.sp)
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -417,11 +437,13 @@ private fun AuthorProfileDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = RitmoSage),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Message", color = RitmoCream)
+                    Text(stringResource(R.string.message_button), color = RitmoCream)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-                TextButton(onClick = onDismiss) { Text("Close", color = RitmoBlack) }
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.close), color = RitmoBlack)
+                }
             }
         }
     }

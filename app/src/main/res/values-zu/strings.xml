@@ -10,7 +10,7 @@
     <string name="have_account">Usunayo i-akhawunti? Ngena</string>
     <string name="or">noma</string>
     <string name="continue_google">Qhubeka ne-Google</string>
-    <string name="fill_both">Sicelaugcwalise zombili izinsimu.</string>
+    <string name="fill_both">Sicela ugcwalise zombili izinsimu.</string>
     <string name="account_created">I-akhawunti yakhiwe! Hlola i-imeyili yakho ukuyiqinisekisa.</string>
 
     <string name="settings">Izilungiselelo</string>
@@ -28,4 +28,77 @@
     <string name="back">Emuva</string>
     <string name="profile_picture">Isithombe sephrofayili</string>
     <string name="change_photo">Shintsha isithombe</string>
+
+    <string name="good_morning">Sawubona ekuseni</string>
+    <string name="good_afternoon">Sawubona ntambama</string>
+    <string name="good_evening">Sawubona kusihlwa</string>
+    <string name="day_streak">Uchungechunge lwezinsuku ezingu-%1$d</string>
+    <string name="streak">Uchungechunge</string>
+    <string name="route">Umzila</string>
+    <string name="time">Isikhathi</string>
+    <string name="use_current_location">Sebenzisa indawo yami yamanje</string>
+    <string name="route_hint">Thayipha umzila wakho, noma usebenzise indawo yamanje ngenhla</string>
+    <string name="time_hint">Noma yisiphi isikhathi samahora angu-24 — akukhawulelwe ekuseni</string>
+    <string name="choose_time">Khetha isikhathi</string>
+    <string name="confirm">Qinisekisa</string>
+    <string name="cancel">Khansela</string>
+    <string name="ok">Kulungile</string>
+    <string name="nav_home">Ikhaya</string>
+    <string name="nav_room">Igumbi</string>
+    <string name="nav_messages">Imilayezo</string>
+    <string name="nav_notifications">Izaziso</string>
+    <string name="nav_profile">Iphrofayela</string>
+    <string name="choose_route_time">Sicela ukhethe umzila nesikhathi.</string>
+    <string name="saved">Kugciniwe!</string>
+    <string name="couldnt_save_connection">Asikwazanga ukugcina manje. Hlola uxhumano lwakho.</string>
+    <string name="location_failed">Asikwazanga ukuthola indawo yakho. Zama ukuya endaweni evulekile.</string>
+    <string name="location_failed_now">Asikwazanga ukuthola indawo yakho njengamanje.</string>
+    <string name="location_permission">Imvume yendawo iyadingeka ukugcwalisa umzila wakho ngokuzenzakalelayo.</string>
+
+    <string name="room_members">%1$s  ·  %2$d egumbini</string>
+    <string name="toggle_mic">Vula noma uvale imakrofoni</string>
+    <string name="no_posts">Awekho amaposi okwamanje — yiba owokuqala ukwabelana ngokuthile.</string>
+    <string name="new_post">Iposi elisha</string>
+    <string name="waiting_sync">Amaposi angu-%1$d ayalinda ukuvumelanisa. Azolayishwa uma uxhumeke ku-inthanethi.</string>
+    <string name="couldnt_load_posts">Asikwazanga ukulayisha amaposi: %1$s</string>
+    <string name="unknown_error">iphutha elingaziwa</string>
+    <string name="delete_post">Susa iposi</string>
+    <string name="author">Umbhali</string>
+    <string name="boosted">Kuthuthukisiwe</string>
+    <string name="post_photo">Isithombe seposi</string>
+    <string name="message_button">Thumela umlayezo</string>
+    <string name="close">Vala</string>
+    <string name="route_label">Umzila: %1$s</string>
+
+    <string name="category_lift">Ilifti</string>
+    <string name="category_accommodation">Indawo yokuhlala</string>
+    <string name="category_job">Umsebenzi</string>
+    <string name="category_event">Umcimbi</string>
+    <string name="organic">Okwemvelo</string>
+    <string name="add_photo">Engeza isithombe</string>
+    <string name="selected_photo">Isithombe esikhethiwe</string>
+    <string name="remove_photo">Susa isithombe</string>
+    <string name="post_hint">Yabelana ngokuthile negumbi lomzila wakho...</string>
+    <string name="post_button">Thumela</string>
+    <string name="login_required">Udinga ukungena ukuze uthumele.</string>
+    <string name="write_something">Bhala okuthile ngaphambi kokuthumela.</string>
+    <string name="photo_failed">Asikwazanga ukulayisha leyo foto. Zama enye.</string>
+    <string name="offline_saved">Awuxhumekile ku-inthanethi. Iposi ligciniwe futhi lizolayishwa uma uxhuma futhi.</string>
+    <string name="post_failed">Asikwazanga ukuthumela manje: %1$s</string>
+    <string name="check_connection">hlola uxhumano lwakho</string>
+
+    <string name="no_conversations">Azikho izingxoxo okwamanje — thumela umlayezo kothile ovela kuposi egumbini ukuze uqale.</string>
+    <string name="contact">Oxhumana naye</string>
+    <string name="message_hint">Umlayezo...</string>
+    <string name="send">Thumela</string>
+
+    <string name="set_route_time_hint">Setha umzila nesikhathi ku-Ikhaya ukuze ubone umsebenzi wegumbi lapha.</string>
+    <string name="keep_rhythm">Qhubeka nesigqi sakho namuhla.</string>
+    <string name="posted_in_room">%1$s uthumele egumbini lakho</string>
+    <string name="post_removed_in">Iposi lakho lizosuswa ku-%1$s</string>
+    <string name="minute_one">%1$d umzuzu</string>
+    <string name="minute_other">%1$d imizuzu</string>
+    <string name="hour_one">%1$d ihora</string>
+    <string name="hour_other">%1$d amahora</string>
+    <string name="hours_minutes">%1$dh %2$dm</string>
 </resources>

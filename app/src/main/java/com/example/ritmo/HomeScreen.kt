@@ -17,11 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
+import com.example.ritmo.R
 import com.example.ritmo.ui.theme.RitmoBlack
 import com.example.ritmo.ui.theme.RitmoCream
 import com.example.ritmo.ui.theme.RitmoGray
@@ -30,7 +32,21 @@ import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import java.util.Locale
+
+// Greeting that follows the app language (morning / afternoon / evening)
+@Composable
+private fun localizedGreeting(): String {
+    val hourNow = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    return stringResource(
+        when {
+            hourNow < 12 -> R.string.good_morning
+            hourNow < 18 -> R.string.good_afternoon
+            else -> R.string.good_evening
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +85,7 @@ fun HomeScreen(
                 if (location == null) {
                     isLocating = false
                     coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Couldn't get your location. Try moving to an open area.")
+                        snackbarHostState.showSnackbar(context.getString(R.string.location_failed))
                     }
                     return@addOnSuccessListener
                 }
@@ -88,7 +104,7 @@ fun HomeScreen(
             }.addOnFailureListener {
                 isLocating = false
                 coroutineScope.launch {
-                    snackbarHostState.showSnackbar("Couldn't get your location right now.")
+                    snackbarHostState.showSnackbar(context.getString(R.string.location_failed_now))
                 }
             }
         } catch (e: SecurityException) {
@@ -103,7 +119,7 @@ fun HomeScreen(
             fetchCurrentLocationIntoRoute()
         } else {
             coroutineScope.launch {
-                snackbarHostState.showSnackbar("Location permission is needed to auto-fill your route.")
+                snackbarHostState.showSnackbar(context.getString(R.string.location_permission))
             }
         }
     }
@@ -140,9 +156,9 @@ fun HomeScreen(
     }
 
     fun confirm() {
-        if (userId == null || selectedRoute == null || timeLabel == null) {
+        if (userId == null || selectedRoute.isNullOrBlank() || timeLabel == null) {
             coroutineScope.launch {
-                snackbarHostState.showSnackbar("Please choose a route and a time.")
+                snackbarHostState.showSnackbar(context.getString(R.string.choose_route_time))
             }
             return
         }
@@ -157,7 +173,9 @@ fun HomeScreen(
                 isSaving = false
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar(
-                        if (result.isSuccessful) "Saved!" else "Couldn't save right now. Check your connection."
+                        context.getString(
+                            if (result.isSuccessful) R.string.saved else R.string.couldnt_save_connection
+                        )
                     )
                 }
             }
@@ -184,7 +202,7 @@ fun HomeScreen(
         ) {
 
             Text(
-                text = greetingForNow(),
+                text = localizedGreeting(),
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 color = RitmoBlack
@@ -202,12 +220,12 @@ fun HomeScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Filled.Star,
-                        contentDescription = "Streak",
+                        contentDescription = stringResource(R.string.streak),
                         tint = RitmoCream
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "$streakCount-day streak",
+                        text = stringResource(R.string.day_streak, streakCount),
                         color = RitmoCream,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
@@ -230,7 +248,7 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Route", fontWeight = FontWeight.Bold, color = RitmoBlack)
+                        Text(stringResource(R.string.route), fontWeight = FontWeight.Bold, color = RitmoBlack)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.clickable(enabled = !isLocating) { requestCurrentLocation() }
@@ -244,13 +262,17 @@ fun HomeScreen(
                             } else {
                                 Icon(
                                     Icons.Filled.MyLocation,
-                                    contentDescription = "Use my current location",
+                                    contentDescription = stringResource(R.string.use_current_location),
                                     tint = RitmoSage,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Use current location", color = RitmoSage, fontSize = 12.sp)
+                            Text(
+                                stringResource(R.string.use_current_location),
+                                color = RitmoSage,
+                                fontSize = 12.sp
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -258,7 +280,7 @@ fun HomeScreen(
                     OutlinedTextField(
                         value = selectedRoute ?: "",
                         onValueChange = { selectedRoute = it },
-                        placeholder = { Text("Type your route, or use current location above") },
+                        placeholder = { Text(stringResource(R.string.route_hint)) },
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = RitmoSage,
                             unfocusedBorderColor = RitmoGray
@@ -268,10 +290,10 @@ fun HomeScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text("Time", fontWeight = FontWeight.Bold, color = RitmoBlack)
+                    Text(stringResource(R.string.time), fontWeight = FontWeight.Bold, color = RitmoBlack)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "Any 24-hour time \u2014 not limited to mornings",
+                        stringResource(R.string.time_hint),
                         color = RitmoGray,
                         fontSize = 12.sp
                     )
@@ -281,7 +303,7 @@ fun HomeScreen(
                         onClick = { showTimePicker = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(timeLabel ?: "Choose a time", color = RitmoBlack)
+                        Text(timeLabel ?: stringResource(R.string.choose_time), color = RitmoBlack)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -300,7 +322,7 @@ fun HomeScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Confirm")
+                            Text(stringResource(R.string.confirm))
                         }
                     }
                 }
@@ -319,19 +341,25 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    NavIcon(Icons.Filled.Home, "Home", isSelected = true)
+                    NavIcon(Icons.Filled.Home, stringResource(R.string.nav_home), isSelected = true)
                     NavIcon(
                         Icons.Filled.Groups,
-                        "Room",
+                        stringResource(R.string.nav_room),
                         onClick = {
+                            // "General" and "Anytime" stay in English on purpose: they form the
+                            // room ID, so every language must map to the same room.
                             val route = selectedRoute?.takeIf { it.isNotBlank() } ?: "General"
                             val time = timeLabel ?: "Anytime"
                             onNavigateToRoom(route, time)
                         }
                     )
-                    NavIcon(Icons.Filled.Chat, "Messages", onClick = onNavigateToMessages)
-                    NavIcon(Icons.Filled.Notifications, "Notifications", onClick = onNavigateToNotifications)
-                    NavIcon(Icons.Filled.Person, "Profile", onClick = onNavigateToProfile)
+                    NavIcon(Icons.Filled.Chat, stringResource(R.string.nav_messages), onClick = onNavigateToMessages)
+                    NavIcon(
+                        Icons.Filled.Notifications,
+                        stringResource(R.string.nav_notifications),
+                        onClick = onNavigateToNotifications
+                    )
+                    NavIcon(Icons.Filled.Person, stringResource(R.string.nav_profile), onClick = onNavigateToProfile)
                 }
             }
         }
@@ -360,12 +388,12 @@ private fun RitmoTimePickerDialog(
                 TimePicker(state = state)
                 Spacer(modifier = Modifier.height(12.dp))
                 Row {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = { onConfirm(state.hour, state.minute) },
                         colors = ButtonDefaults.buttonColors(containerColor = RitmoSage)
-                    ) { Text("OK") }
+                    ) { Text(stringResource(R.string.ok)) }
                 }
             }
         }

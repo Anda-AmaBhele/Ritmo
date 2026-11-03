@@ -23,10 +23,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ritmo.OfflineDb
+import com.example.ritmo.R
 import com.example.ritmo.SyncManager
 import com.example.ritmo.ui.theme.RitmoBlack
 import com.example.ritmo.ui.theme.RitmoCream
@@ -36,7 +38,17 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
+// Categories are stored in English in Firestore; only the on-screen label is translated.
 private val categories = listOf("Lift", "Accommodation", "Job", "Event")
+
+@Composable
+fun categoryLabel(category: String): String = when (category) {
+    "Lift" -> stringResource(R.string.category_lift)
+    "Accommodation" -> stringResource(R.string.category_accommodation)
+    "Job" -> stringResource(R.string.category_job)
+    "Event" -> stringResource(R.string.category_event)
+    else -> category
+}
 
 @Composable
 fun PostToBoardScreen(
@@ -67,7 +79,7 @@ fun PostToBoardScreen(
         if (uri != null) {
             imageBase64 = uriToCompressedBase64(context, uri)
             if (imageBase64 == null) {
-                errorMessage = "Couldn't load that photo. Try a different one."
+                errorMessage = context.getString(R.string.photo_failed)
             }
         }
     }
@@ -75,11 +87,11 @@ fun PostToBoardScreen(
     fun post() {
         val uid = auth.currentUser?.uid
         if (uid == null) {
-            errorMessage = "You need to be logged in to post."
+            errorMessage = context.getString(R.string.login_required)
             return
         }
         if (content.isBlank()) {
-            errorMessage = "Write something before posting."
+            errorMessage = context.getString(R.string.write_something)
             return
         }
         val authorName = auth.currentUser?.email?.substringBefore("@") ?: "Ritmo user"
@@ -94,7 +106,7 @@ fun PostToBoardScreen(
             Log.d("RitmoOffline", "No connection, post saved locally")
             Toast.makeText(
                 context,
-                "You're offline. Post saved and will upload when you reconnect.",
+                context.getString(R.string.offline_saved),
                 Toast.LENGTH_LONG
             ).show()
             onPosted()
@@ -121,7 +133,10 @@ fun PostToBoardScreen(
                 if (result.isSuccessful) {
                     onPosted()
                 } else {
-                    errorMessage = "Couldn't post right now: ${result.exception?.message ?: "check your connection"}"
+                    errorMessage = context.getString(
+                        R.string.post_failed,
+                        result.exception?.message ?: context.getString(R.string.check_connection)
+                    )
                 }
             }
     }
@@ -135,13 +150,13 @@ fun PostToBoardScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Filled.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.back),
                 tint = RitmoBlack,
                 modifier = Modifier.clickable { onBack() }
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "New post",
+                text = stringResource(R.string.new_post),
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 color = RitmoBlack
@@ -163,7 +178,7 @@ fun PostToBoardScreen(
                         .padding(horizontal = 14.dp, vertical = 8.dp)
                 ) {
                     Text(
-                        category,
+                        categoryLabel(category),
                         color = if (selected) RitmoCream else RitmoBlack,
                         fontSize = 13.sp
                     )
@@ -179,7 +194,7 @@ fun PostToBoardScreen(
                     .background(RitmoSage.copy(alpha = 0.15f), RoundedCornerShape(24.dp))
                     .padding(4.dp)
             ) {
-                listOf("Organic" to false, "Boosted" to true).forEach { (label, boosted) ->
+                listOf(R.string.organic to false, R.string.boosted to true).forEach { (labelRes, boosted) ->
                     val selected = isBoosted == boosted
                     Box(
                         modifier = Modifier
@@ -192,7 +207,7 @@ fun PostToBoardScreen(
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(label, color = RitmoBlack, fontSize = 13.sp)
+                        Text(stringResource(labelRes), color = RitmoBlack, fontSize = 13.sp)
                     }
                 }
             }
@@ -206,7 +221,7 @@ fun PostToBoardScreen(
             Box(modifier = Modifier.fillMaxWidth()) {
                 Image(
                     bitmap = previewBitmap.asImageBitmap(),
-                    contentDescription = "Selected photo",
+                    contentDescription = stringResource(R.string.selected_photo),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -215,7 +230,7 @@ fun PostToBoardScreen(
                 )
                 Icon(
                     Icons.Filled.Close,
-                    contentDescription = "Remove photo",
+                    contentDescription = stringResource(R.string.remove_photo),
                     tint = Color.White,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
@@ -237,7 +252,7 @@ fun PostToBoardScreen(
             ) {
                 Icon(Icons.Filled.PhotoCamera, contentDescription = null, tint = RitmoSage)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Add a photo", color = RitmoBlack)
+                Text(stringResource(R.string.add_photo), color = RitmoBlack)
             }
             Spacer(modifier = Modifier.height(12.dp))
         }
@@ -245,7 +260,7 @@ fun PostToBoardScreen(
         OutlinedTextField(
             value = content,
             onValueChange = { content = it },
-            placeholder = { Text("Share something with your route room...") },
+            placeholder = { Text(stringResource(R.string.post_hint)) },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = RitmoSage,
                 unfocusedBorderColor = RitmoGray
@@ -278,7 +293,7 @@ fun PostToBoardScreen(
                     strokeWidth = 2.dp
                 )
             } else {
-                Text("Post", color = RitmoCream)
+                Text(stringResource(R.string.post_button), color = RitmoCream)
             }
         }
     }

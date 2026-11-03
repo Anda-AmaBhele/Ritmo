@@ -28,4 +28,77 @@
     <string name="back">Back</string>
     <string name="profile_picture">Profile picture</string>
     <string name="change_photo">Change photo</string>
+
+    <string name="good_morning">Good morning</string>
+    <string name="good_afternoon">Good afternoon</string>
+    <string name="good_evening">Good evening</string>
+    <string name="day_streak">%1$d-day streak</string>
+    <string name="streak">Streak</string>
+    <string name="route">Route</string>
+    <string name="time">Time</string>
+    <string name="use_current_location">Use current location</string>
+    <string name="route_hint">Type your route, or use current location above</string>
+    <string name="time_hint">Any 24-hour time — not limited to mornings</string>
+    <string name="choose_time">Choose a time</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_room">Room</string>
+    <string name="nav_messages">Messages</string>
+    <string name="nav_notifications">Notifications</string>
+    <string name="nav_profile">Profile</string>
+    <string name="choose_route_time">Please choose a route and a time.</string>
+    <string name="saved">Saved!</string>
+    <string name="couldnt_save_connection">Couldn\'t save right now. Check your connection.</string>
+    <string name="location_failed">Couldn\'t get your location. Try moving to an open area.</string>
+    <string name="location_failed_now">Couldn\'t get your location right now.</string>
+    <string name="location_permission">Location permission is needed to auto-fill your route.</string>
+
+    <string name="room_members">%1$s  ·  %2$d in this room</string>
+    <string name="toggle_mic">Toggle mic</string>
+    <string name="no_posts">No posts yet — be the first to share something.</string>
+    <string name="new_post">New post</string>
+    <string name="waiting_sync">%1$d post(s) waiting to sync. They\'ll upload when you\'re online.</string>
+    <string name="couldnt_load_posts">Couldn\'t load posts: %1$s</string>
+    <string name="unknown_error">unknown error</string>
+    <string name="delete_post">Delete post</string>
+    <string name="author">Author</string>
+    <string name="boosted">Boosted</string>
+    <string name="post_photo">Post photo</string>
+    <string name="message_button">Message</string>
+    <string name="close">Close</string>
+    <string name="route_label">Route: %1$s</string>
+
+    <string name="category_lift">Lift</string>
+    <string name="category_accommodation">Accommodation</string>
+    <string name="category_job">Job</string>
+    <string name="category_event">Event</string>
+    <string name="organic">Organic</string>
+    <string name="add_photo">Add a photo</string>
+    <string name="selected_photo">Selected photo</string>
+    <string name="remove_photo">Remove photo</string>
+    <string name="post_hint">Share something with your route room...</string>
+    <string name="post_button">Post</string>
+    <string name="login_required">You need to be logged in to post.</string>
+    <string name="write_something">Write something before posting.</string>
+    <string name="photo_failed">Couldn\'t load that photo. Try a different one.</string>
+    <string name="offline_saved">You\'re offline. Post saved and will upload when you reconnect.</string>
+    <string name="post_failed">Couldn\'t post right now: %1$s</string>
+    <string name="check_connection">check your connection</string>
+
+    <string name="no_conversations">No conversations yet — message someone from a post in a room to start one.</string>
+    <string name="contact">Contact</string>
+    <string name="message_hint">Message...</string>
+    <string name="send">Send</string>
+
+    <string name="set_route_time_hint">Set a route and time on Home to see room activity here.</string>
+    <string name="keep_rhythm">Keep your rhythm going today.</string>
+    <string name="posted_in_room">%1$s posted in your room</string>
+    <string name="post_removed_in">Your post will be removed in %1$s</string>
+    <string name="minute_one">%1$d minute</string>
+    <string name="minute_other">%1$d minutes</string>
+    <string name="hour_one">%1$d hour</string>
+    <string name="hour_other">%1$d hours</string>
+    <string name="hours_minutes">%1$dh %2$dm</string>
 </resources>

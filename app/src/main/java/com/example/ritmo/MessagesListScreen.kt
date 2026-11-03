@@ -15,9 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ritmo.R
 import com.example.ritmo.ui.theme.RitmoBlack
 import com.example.ritmo.ui.theme.RitmoCream
 import com.example.ritmo.ui.theme.RitmoGray
@@ -82,17 +84,22 @@ fun MessagesListScreen(
         ) {
             Icon(
                 imageVector = Icons.Filled.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = stringResource(R.string.back),
                 tint = RitmoBlack,
                 modifier = Modifier.clickable { onBack() }
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Text("Messages", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = RitmoBlack)
+            Text(
+                stringResource(R.string.nav_messages),
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                color = RitmoBlack
+            )
         }
 
         if (conversations.isEmpty()) {
             Text(
-                "No conversations yet \u2014 message someone from a post in a room to start one.",
+                stringResource(R.string.no_conversations),
                 color = RitmoGray,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(horizontal = 20.dp)
@@ -113,13 +120,18 @@ fun MessagesListScreen(
                     ) {
                         Icon(
                             Icons.Filled.AccountCircle,
-                            contentDescription = "Contact",
+                            contentDescription = stringResource(R.string.contact),
                             tint = RitmoSage,
                             modifier = Modifier.size(36.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text(convo.otherUserName, fontWeight = FontWeight.Bold, color = RitmoBlack, fontSize = 15.sp)
+                            Text(
+                                convo.otherUserName,
+                                fontWeight = FontWeight.Bold,
+                                color = RitmoBlack,
+                                fontSize = 15.sp
+                            )
                             if (convo.lastMessage.isNotBlank()) {
                                 Text(convo.lastMessage, color = RitmoGray, fontSize = 13.sp, maxLines = 1)
                             }
