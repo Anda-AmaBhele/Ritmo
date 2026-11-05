@@ -12,10 +12,7 @@ A commute-based community app for Android, built with Kotlin and Jetpack Compose
 **Module:** OPSC6312 – Open Source Coding (Part 3: Final PoE)
 **Student:** Sinako — The IIE's Rosebank College
 **Repository:** https://github.com/Anda-AmaBhele/Ritmo
-**Demo video (voice-over):** [ADD YOUR UNLISTED YOUTUBE LINK HERE](https://youtube.com)
-
----
-
+**Demo video (voice-over):** [[Watch the demo on YouTube](https://youtu.be/m4M0m_RsS6I)
 ## Table of contents
 
 1. [Purpose of the app](#1-purpose-of-the-app)
